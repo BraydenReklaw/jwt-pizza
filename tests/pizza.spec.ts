@@ -6,7 +6,8 @@ async function basicInit(page: Page) {
   let loggedInUser: User | undefined;
   const validUsers: Record<string, User> = { 
     'd@jwt.com': { id: '3', name: 'Kai Chen', email: 'd@jwt.com', password: 'a', roles: [{ role: Role.Diner }] }, 
-    'f@jwt.com': { id: '4', name: 'Fran Chise', email: 'f@jwt.com', password: 'a', roles: [{ role: Role.Franchisee, objectId: '2'}] }
+    'f@jwt.com': { id: '4', name: 'Fran Chise', email: 'f@jwt.com', password: 'a', roles: [{ role: Role.Franchisee, objectId: '2'}] },
+    'a@jwt.com': { id: '5', name: 'Ad Min', email: 'a@jwt.com', password: 'a', roles: [{ role: Role.Admin }] },
   };
 
   // Authorize login for the given user
@@ -103,7 +104,7 @@ async function basicInit(page: Page) {
   });
 
   await page.route(/\/api\/franchise\/\d+$/, async (route) => {
-    if (loggedInUser?.roles.some(r => r.role === Role.Franchisee)) {
+    if (loggedInUser?.roles?.find(r => r.role === Role.Franchisee)) {
       await route.fulfill({
         json: [
           {
@@ -264,3 +265,23 @@ test('franchisee navigates to Franchise Dashboard', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Create store' })).toBeVisible();
   await expect(page.getByRole('row', { name: 'Lehi 100 ₿ Close' }).getByRole('button')).toBeVisible();
 });
+
+test('admin navigates to Admin Dashboard', async ({ page }) => {
+  await basicInit(page);
+
+  // Login as admin
+  await page.getByRole('link', { name: 'Login' }).click();
+  await page.getByPlaceholder('Email address').fill('a@jwt.com');
+  await page.getByPlaceholder('Password').fill('a');
+  await page.getByRole('button', { name: 'Login' }).click();
+
+  // Verify login success
+  await expect(page.getByRole('link', { name: 'AM' })).toBeVisible();
+  
+  // Navigate to Admin Dashboard
+  await page.getByRole('link', { name: 'Admin' }).click();
+  await expect(page.getByRole('heading', { name: 'Franchises' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Add Franchise' })).toBeVisible();
+  await expect(page.getByRole('row', { name: 'LotaPizza Close' }).getByRole('button')).toBeVisible();
+  await expect(page.getByRole('row', { name: 'Lehi ₿ Close' }).getByRole('button')).toBeVisible();
+})
