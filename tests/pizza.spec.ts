@@ -298,6 +298,11 @@ test("franchisee navigates to Franchise Dashboard", async ({ page }) => {
   await expect(
     page.getByRole("row", { name: "Lehi 100 ₿ Close" }).getByRole("button")
   ).toBeVisible();
+  await page.getByRole('row', { name: 'Lehi 100 ₿ Close' }).getByRole('button').click();
+  await page.getByRole('button', { name: 'Cancel' }).click();
+  await page.getByRole('button', { name: 'Create store' }).click();
+  await expect(page.getByRole('textbox', { name: 'store name' })).toBeVisible();
+  await page.getByRole('button', { name: 'Cancel' }).click();
 });
 
 test("admin navigates to Admin Dashboard", async ({ page }) => {
