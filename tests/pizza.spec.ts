@@ -105,24 +105,57 @@ async function basicInit(page: Page) {
 
   // Standard franchises and stores
   await page.route(/\/api\/franchise(\?.*)?$/, async (route) => {
-    const franchiseRes = {
-      franchises: [
-        {
-          id: 2,
-          name: "LotaPizza",
-          stores: [
-            { id: 4, name: "Lehi" },
-            { id: 5, name: "Springville" },
-            { id: 6, name: "American Fork" },
-          ],
-        },
-        { id: 3, name: "PizzaCorp", stores: [{ id: 7, name: "Spanish Fork" }] },
-        { id: 4, name: "topSpot", stores: [] },
+  //   const franchiseRes = {
+  //     franchises: [
+  //       {
+  //         id: 2,
+  //         name: "LotaPizza",
+  //         stores: [
+  //           { id: 4, name: "Lehi" },
+  //           { id: 5, name: "Springville" },
+  //           { id: 6, name: "American Fork" },
+  //         ],
+  //       },
+  //       { id: 3, name: "PizzaCorp", stores: [{ id: 7, name: "Spanish Fork" }] },
+  //       { id: 4, name: "topSpot", stores: [] },
+  //     ],
+  //   };
+  //   expect(route.request().method()).toBe("GET");
+  //   await route.fulfill({ json: franchiseRes });
+  // });
+  expect(route.request().method()).toBe("GET");
+
+  const url = new URL(route.request().url());
+  const nameFilterRaw = url.searchParams.get("name") || "*";
+
+  const nameFilter = nameFilterRaw.replace(/\*/g, "").trim().toLowerCase();
+
+  const allFranchises = [
+    {
+      id: 2,
+      name: "LotaPizza",
+      stores: [
+        { id: 4, name: "Lehi" },
+        { id: 5, name: "Springville" },
+        { id: 6, name: "American Fork" },
       ],
-    };
-    expect(route.request().method()).toBe("GET");
-    await route.fulfill({ json: franchiseRes });
-  });
+    },
+    { id: 3, name: "PizzaCorp", stores: [{ id: 7, name: "Spanish Fork" }] },
+    { id: 4, name: "topSpot", stores: [] },
+  ];
+
+  // Apply name filter (case-insensitive substring match)
+  const filteredFranchises =
+    nameFilter === "*" || nameFilter.trim() === ""
+      ? allFranchises
+      : allFranchises.filter((f) =>
+          f.name.toLowerCase().includes(nameFilter.toLowerCase())
+        );
+
+  const franchiseRes = { franchises: filteredFranchises };
+
+  await route.fulfill({ json: franchiseRes });
+});
 
   await page.route(/\/api\/franchise\/\d+$/, async (route) => {
     if (loggedInUser?.roles?.find((r) => r.role === Role.Franchisee)) {
@@ -345,4 +378,7 @@ test("admin opens and closes franchise (canceling the action)", async ({ page })
   await page.getByRole('button', { name: 'Cancel' }).click();
   await page.getByRole("button", { name: "Add Franchise" }).click();
   await page.getByRole('button', { name: 'Cancel' }).click();
+  await page.getByRole('textbox', { name: 'Filter franchises' }).click();
+  await page.getByRole('textbox', { name: 'Filter franchises' }).fill('Pizza');
+  await page.getByRole('button', { name: 'Submit' }).click();
 });
