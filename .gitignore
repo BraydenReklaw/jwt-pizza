@@ -15,3 +15,4 @@ node_modules/
 /playwright/.auth/
 
 .nyc_output
+vite.config.js.timestamp*
