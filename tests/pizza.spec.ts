@@ -127,3 +127,21 @@ test('purchase with login', async ({ page }) => {
   // Check balance
   await expect(page.getByText('0.008')).toBeVisible();
 });
+
+test('diner access other pages', async ({ page }) => {
+  await basicInit(page);
+  // login
+  await page.getByRole('link', { name: 'Login' }).click();
+  await page.getByRole('textbox', { name: 'Email address' }).fill('d@jwt.com');
+  await page.getByRole('textbox', { name: 'Password' }).fill('a');
+  await page.getByRole('button', { name: 'Login' }).click();
+  // navigate to other pages
+  await page.getByRole('link', { name: 'About' }).click();
+  await expect(page.getByText('The secret sauce')).toBeVisible();
+  await page.getByRole('link', { name: 'History' }).click();
+  await expect(page.getByText('Mama Rucci, my my')).toBeVisible();
+  await page.getByRole('contentinfo').getByRole('link', { name: 'Franchise' }).click();
+  await expect(page.getByText('So you want a piece of the')).toBeVisible();
+  await page.getByRole('link', { name: 'home' }).click();
+  await expect(page.getByText('The web\'s best pizza', { exact: true })).toBeVisible();
+})
