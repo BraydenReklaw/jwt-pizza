@@ -103,6 +103,7 @@ test('login', async ({ page }) => {
   await page.getByRole('button', { name: 'Login' }).click();
 
   await expect(page.getByRole('link', { name: 'KC' })).toBeVisible();
+
 });
 
 test('purchase with login', async ({ page }) => {
@@ -144,7 +145,7 @@ test('diner access other pages', async ({ page }) => {
   await page.getByRole('textbox', { name: 'Email address' }).fill('d@jwt.com');
   await page.getByRole('textbox', { name: 'Password' }).fill('a');
   await page.getByRole('button', { name: 'Login' }).click();
-  // navigate to other pages
+  // navigate to other pages (About, History, Franchise, Dashboard)
   await page.getByRole('link', { name: 'About' }).click();
   await expect(page.getByText('The secret sauce')).toBeVisible();
   await page.getByRole('link', { name: 'History' }).click();
@@ -153,6 +154,8 @@ test('diner access other pages', async ({ page }) => {
   await expect(page.getByText('So you want a piece of the')).toBeVisible();
   await page.getByRole('link', { name: 'home' }).click();
   await expect(page.getByText('The web\'s best pizza', { exact: true })).toBeVisible();
+  await page.getByRole('link', { name: 'KC' }).click();
+  await expect(page.getByRole('link', { name: 'diner-dashboard' })).toBeVisible();
 })
 
 test('logout', async ({ page }) => {
