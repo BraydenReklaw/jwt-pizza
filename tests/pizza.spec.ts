@@ -4,7 +4,10 @@ import { Page } from '@playwright/test';
 
 async function basicInit(page: Page) {
   let loggedInUser: User | undefined;
-  const validUsers: Record<string, User> = { 'd@jwt.com': { id: '3', name: 'Kai Chen', email: 'd@jwt.com', password: 'a', roles: [{ role: Role.Diner }] } };
+  const validUsers: Record<string, User> = { 
+    'd@jwt.com': { id: '3', name: 'Kai Chen', email: 'd@jwt.com', password: 'a', roles: [{ role: Role.Diner }] }, 
+    'f@jwt.com': { id: '4', name: 'Fran Chise', email: 'f@jwt.com', password: 'a', roles: [{ role: Role.Franchisee, objectId: '2'}] }
+  };
 
   // Authorize login for the given user
   await page.route('*/**/api/auth', async (route) => {
@@ -15,7 +18,8 @@ async function basicInit(page: Page) {
       loggedInUser = undefined;
       await route.fulfill({ json: { message: 'Logged out' } });
       return;
-    } else {
+    }
+    if (method === 'PUT') {
       const loginReq = route.request().postDataJSON();
       const user = validUsers[loginReq.email];
       if (!user || user.password !== loginReq.password) {
@@ -29,6 +33,23 @@ async function basicInit(page: Page) {
       };
       expect(route.request().method()).toBe('PUT');
       await route.fulfill({ json: loginRes });
+    }
+    if (method === 'POST') {
+      const { name, email, password } = route.request().postDataJSON();
+      if (validUsers[email]) {
+        await route.fulfill({ status: 409, json: { error: 'User already exists' } });
+        return;
+      }
+      const newUser: User = {
+        id: String(Object.keys(validUsers).length + 3),
+        name,
+        email,
+        password,
+        roles: [{ role: Role.Diner }],
+      }
+      validUsers[email] = newUser;
+      loggedInUser = newUser;
+      await route.fulfill({ json: { user: newUser, token: 'ghijkl' } });
     }
   });
 
@@ -191,3 +212,26 @@ test('logout', async ({ page }) => {
   await expect(page.getByRole('link', { name: 'Login' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Register' })).toBeVisible();
   })
+
+  test('register', async ({ page }) => {
+    await basicInit(page);
+
+    await page.getByRole('link', { name: 'Register' }).click();
+    await page.getByPlaceholder('Full name').fill('New User');
+    await page.getByPlaceholder('Email address').fill('new@jwt.com');
+    await page.getByPlaceholder('Password').fill('mypassword');
+    await page.getByRole('button', { name: 'Register' }).click();
+
+    // After successful registration, user should be logged in
+    await expect(page.getByRole('link', { name: 'NU' })).toBeVisible();
+  })
+
+  // test('franchisee login and access', async ({ page }) => {
+  //   await basicInit(page);
+  //   // login
+  //   await page.getByRole('link', { name: 'Login' }).click();
+  //   await page.getByRole('textbox', { name: 'Email address' }).fill('f@jwt.com');
+  //   await page.getByRole('textbox', { name: 'Password' }).fill('a');
+  //   await page.getByRole('button', { name: 'Login' }).click();
+
+  // })
