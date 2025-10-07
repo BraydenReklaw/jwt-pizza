@@ -285,3 +285,20 @@ test('admin navigates to Admin Dashboard', async ({ page }) => {
   await expect(page.getByRole('row', { name: 'LotaPizza Close' }).getByRole('button')).toBeVisible();
   await expect(page.getByRole('row', { name: 'Lehi ₿ Close' }).getByRole('button')).toBeVisible();
 })
+
+test('admin opens and closes franchise', async ({ page }) => {
+  await basicInit(page);
+  
+  // Login as admin
+  await page.getByRole('link', { name: 'Login' }).click();
+  await page.getByPlaceholder('Email address').fill('a@jwt.com');
+  await page.getByPlaceholder('Password').fill('a');
+  await page.getByRole('button', { name: 'Login' }).click(); 
+  await page.getByRole('link', { name: 'Admin' }).click();
+  await page.getByRole('button', { name: 'Add Franchise' }).click();
+  await page.getByRole('textbox', { name: 'franchise name' }).click();
+  await page.getByRole('textbox', { name: 'franchise name' }).fill('test');
+  await page.getByRole('textbox', { name: 'franchisee admin email' }).click();
+  await page.getByRole('textbox', { name: 'franchisee admin email' }).fill('test@test.com');
+  await page.getByRole('button', { name: 'Create' }).click();
+})
