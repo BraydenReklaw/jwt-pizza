@@ -112,9 +112,16 @@ async function basicInit(page: Page) {
     }
 
     // Apply updates (name, email, password)
+    const oldEmail = user.email;
     if (updateData.name) user.name = updateData.name;
     if (updateData.email) user.email = updateData.email;
     if (updateData.password) user.password = updateData.password;
+
+    // If the email was changed, update the validUsers map key
+    if (updateData.email && oldEmail !== updateData.email) {
+      delete validUsers[oldEmail!];
+      validUsers[updateData.email] = user;
+    }
 
     // If the logged in user updated themselves, sync it
     if (loggedInUser.id === userId) {
@@ -296,3 +303,26 @@ test("change password", async ({ page }) => {
   await page.getByRole("button", { name: "Login" }).click();
   await expect(page.getByRole('link', { name: 'pd' })).toBeVisible();
 });
+
+test("change email", async ({page}) => {
+  await basicInit(page);
+  await page.goto("/")
+  await page.getByRole("link", { name: "Login" }).click();
+  await page.getByRole("textbox", { name: "Email address" }).fill("d@jwt.com");
+  await page.getByRole("textbox", { name: "Password" }).fill("a");
+  await page.getByRole("button", { name: "Login" }).click();
+  
+  await page.getByRole("link", { name: "kc" }).click();
+  await page.getByRole("button", { name: "Edit" }).click();
+  await expect(page.locator("h3")).toContainText("Edit user");
+  await page.locator('input[type="email"]').click();
+  await page.locator('input[type="email"]').fill('t@jwt.com');
+  await page.getByRole("button", { name: "Update" }).click();
+  await page.waitForSelector('[role="dialog"].hidden', { state: "attached" });
+  await page.getByRole("link", { name: "Logout" }).click();
+  await page.getByRole("link", { name: "Login" }).click();
+  await page.getByRole("textbox", { name: "Email address" }).fill("t@jwt.com");
+  await page.getByRole("textbox", { name: "Password" }).fill("a");
+  await page.getByRole("button", { name: "Login" }).click();
+  await expect(page.getByText('The web\'s best pizza', { exact: true })).toBeVisible();
+})
