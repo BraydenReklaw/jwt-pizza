@@ -83,25 +83,34 @@ async function basicInit(page: Page) {
       await route.fulfill({ json: loggedInUser });
       return;
     }
-
+    // this requires /api/user/userId. fix this!!!
     if (method === "PUT") {
-      if (!loggedInUser) {
-        await route.fulfill({ status: 401, json: { error: "Unauthorized" } });
-        return;
-      }
-      const updatedData = route.request().postDataJSON();
-      loggedInUser = { ...loggedInUser, ...updatedData };
-      // Update also in validUsers so login reflects changes
-      validUsers[loggedInUser.email] = loggedInUser;
+  if (!loggedInUser) {
+    await route.fulfill({ status: 401, json: { error: "Unauthorized" } });
+    return;
+  }
 
-      await route.fulfill({ json: loggedInUser });
-      return;
-    }
+  const currentUser = loggedInUser; // now definitely a User
+  const updatedData = route.request().postDataJSON();
+
+  const oldEmail = currentUser.email;
+  const newUser = { ...currentUser, ...updatedData };
+
+  if (oldEmail !== newUser.email) {
+    delete validUsers[oldEmail!];
+  }
+
+  validUsers[newUser.email] = newUser;
+  loggedInUser = newUser;
+
+  await route.fulfill({ json: newUser });
+  return;
+}
   });
 }
 
 test("updateUser", async ({ page }) => {
-  basicInit(page);
+  await basicInit(page);
   const email = `user${Math.floor(Math.random() * 10000)}@jwt.com`;
   await page.goto("/");
   await page.getByRole("link", { name: "Register" }).click();
@@ -135,7 +144,7 @@ test("updateUser", async ({ page }) => {
 });
 
 test("change password", async ({ page }) => {
-  basicInit(page);
+  await basicInit(page);
   const email = `user${Math.floor(Math.random() * 10000)}@jwt.com`;
   await page.goto("/");
   await page.getByRole("link", { name: "Register" }).click();
