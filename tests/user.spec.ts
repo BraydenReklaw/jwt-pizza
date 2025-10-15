@@ -354,3 +354,32 @@ test("franchisee update info", async ({page}) => {
   await expect(page.getByText('pizza franchisee')).toBeVisible();
   await expect(page.getByText('Franchisee on')).toBeVisible();
 })
+
+test("adim update info", async ({page}) => {
+  await basicInit(page);
+  await page.goto("/")
+  await page.getByRole("link", { name: "Login" }).click();
+  await page.getByRole("textbox", { name: "Email address" }).fill("a@jwt.com");
+  await page.getByRole("textbox", { name: "Password" }).fill("a");
+  await page.getByRole("button", { name: "Login" }).click();
+  await page.getByRole("link", { name: "am" }).click();
+  await page.getByRole("button", { name: "Edit" }).click();
+  await expect(page.locator("h3")).toContainText("Edit user");
+  await page.getByRole("textbox").first().fill("pizza admin");
+  await page.locator('input[type="email"]').click();
+  await page.locator('input[type="email"]').fill('t@jwt.com');
+  await page.locator('#password').click();
+  await page.locator('#password').fill('f');
+  await page.getByRole("button", { name: "Update" }).click();
+  await page.waitForSelector('[role="dialog"].hidden', { state: "attached" });
+  await page.getByRole("link", { name: "Logout" }).click();
+  await page.getByRole("link", { name: "Login" }).click();
+  await page.getByRole("textbox", { name: "Email address" }).fill("t@jwt.com");
+  await page.getByRole("textbox", { name: "Password" }).fill("f");
+  await page.getByRole("button", { name: "Login" }).click();
+  await expect(page.getByRole('link', { name: 'pa' })).toBeVisible();
+  await page.getByRole('link', { name: 'pa' }).click();
+  await expect(page.getByText('pizza admin')).toBeVisible();
+  await expect(page.getByText('role:')).toBeVisible();
+  await expect(page.getByText('admin', { exact: true })).toBeVisible();
+})
