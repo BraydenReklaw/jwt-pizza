@@ -105,57 +105,57 @@ async function basicInit(page: Page) {
 
   // Standard franchises and stores
   await page.route(/\/api\/franchise(\?.*)?$/, async (route) => {
-  //   const franchiseRes = {
-  //     franchises: [
-  //       {
-  //         id: 2,
-  //         name: "LotaPizza",
-  //         stores: [
-  //           { id: 4, name: "Lehi" },
-  //           { id: 5, name: "Springville" },
-  //           { id: 6, name: "American Fork" },
-  //         ],
-  //       },
-  //       { id: 3, name: "PizzaCorp", stores: [{ id: 7, name: "Spanish Fork" }] },
-  //       { id: 4, name: "topSpot", stores: [] },
-  //     ],
-  //   };
-  //   expect(route.request().method()).toBe("GET");
-  //   await route.fulfill({ json: franchiseRes });
-  // });
-  expect(route.request().method()).toBe("GET");
+    //   const franchiseRes = {
+    //     franchises: [
+    //       {
+    //         id: 2,
+    //         name: "LotaPizza",
+    //         stores: [
+    //           { id: 4, name: "Lehi" },
+    //           { id: 5, name: "Springville" },
+    //           { id: 6, name: "American Fork" },
+    //         ],
+    //       },
+    //       { id: 3, name: "PizzaCorp", stores: [{ id: 7, name: "Spanish Fork" }] },
+    //       { id: 4, name: "topSpot", stores: [] },
+    //     ],
+    //   };
+    //   expect(route.request().method()).toBe("GET");
+    //   await route.fulfill({ json: franchiseRes });
+    // });
+    expect(route.request().method()).toBe("GET");
 
-  const url = new URL(route.request().url());
-  const nameFilterRaw = url.searchParams.get("name") || "*";
+    const url = new URL(route.request().url());
+    const nameFilterRaw = url.searchParams.get("name") || "*";
 
-  const nameFilter = nameFilterRaw.replace(/\*/g, "").trim().toLowerCase();
+    const nameFilter = nameFilterRaw.replace(/\*/g, "").trim().toLowerCase();
 
-  const allFranchises = [
-    {
-      id: 2,
-      name: "LotaPizza",
-      stores: [
-        { id: 4, name: "Lehi" },
-        { id: 5, name: "Springville" },
-        { id: 6, name: "American Fork" },
-      ],
-    },
-    { id: 3, name: "PizzaCorp", stores: [{ id: 7, name: "Spanish Fork" }] },
-    { id: 4, name: "topSpot", stores: [] },
-  ];
+    const allFranchises = [
+      {
+        id: 2,
+        name: "LotaPizza",
+        stores: [
+          { id: 4, name: "Lehi" },
+          { id: 5, name: "Springville" },
+          { id: 6, name: "American Fork" },
+        ],
+      },
+      { id: 3, name: "PizzaCorp", stores: [{ id: 7, name: "Spanish Fork" }] },
+      { id: 4, name: "topSpot", stores: [] },
+    ];
 
-  // Apply name filter (case-insensitive substring match)
-  const filteredFranchises =
-    nameFilter === "*" || nameFilter.trim() === ""
-      ? allFranchises
-      : allFranchises.filter((f) =>
-          f.name.toLowerCase().includes(nameFilter.toLowerCase())
-        );
+    // Apply name filter (case-insensitive substring match)
+    const filteredFranchises =
+      nameFilter === "*" || nameFilter.trim() === ""
+        ? allFranchises
+        : allFranchises.filter((f) =>
+            f.name.toLowerCase().includes(nameFilter.toLowerCase())
+          );
 
-  const franchiseRes = { franchises: filteredFranchises };
+    const franchiseRes = { franchises: filteredFranchises };
 
-  await route.fulfill({ json: franchiseRes });
-});
+    await route.fulfill({ json: franchiseRes });
+  });
 
   await page.route(/\/api\/franchise\/\d+$/, async (route) => {
     if (loggedInUser?.roles?.find((r) => r.role === Role.Franchisee)) {
@@ -331,11 +331,14 @@ test("franchisee navigates to Franchise Dashboard", async ({ page }) => {
   await expect(
     page.getByRole("row", { name: "Lehi 100 ₿ Close" }).getByRole("button")
   ).toBeVisible();
-  await page.getByRole('row', { name: 'Lehi 100 ₿ Close' }).getByRole('button').click();
-  await page.getByRole('button', { name: 'Cancel' }).click();
-  await page.getByRole('button', { name: 'Create store' }).click();
-  await expect(page.getByRole('textbox', { name: 'store name' })).toBeVisible();
-  await page.getByRole('button', { name: 'Cancel' }).click();
+  await page
+    .getByRole("row", { name: "Lehi 100 ₿ Close" })
+    .getByRole("button")
+    .click();
+  await page.getByRole("button", { name: "Cancel" }).click();
+  await page.getByRole("button", { name: "Create store" }).click();
+  await expect(page.getByRole("textbox", { name: "store name" })).toBeVisible();
+  await page.getByRole("button", { name: "Cancel" }).click();
 });
 
 test("admin navigates to Admin Dashboard", async ({ page }) => {
@@ -364,7 +367,9 @@ test("admin navigates to Admin Dashboard", async ({ page }) => {
   ).toBeVisible();
 });
 
-test("admin opens and closes franchise (canceling the action)", async ({ page }) => {
+test("admin opens and closes franchise (canceling the action)", async ({
+  page,
+}) => {
   await basicInit(page);
 
   // Login as admin
@@ -373,12 +378,18 @@ test("admin opens and closes franchise (canceling the action)", async ({ page })
   await page.getByPlaceholder("Password").fill("a");
   await page.getByRole("button", { name: "Login" }).click();
   await page.getByRole("link", { name: "Admin" }).click();
-  await page.getByRole('row', { name: 'topSpot Close' }).getByRole('button').click();
-  await expect(page.getByText('Sorry to see you go')).toBeVisible();
-  await page.getByRole('button', { name: 'Cancel' }).click();
+  await page
+    .getByRole("row", { name: "topSpot Close" })
+    .getByRole("button")
+    .click();
+  await expect(page.getByText("Sorry to see you go")).toBeVisible();
+  await page.getByRole("button", { name: "Cancel" }).click();
   await page.getByRole("button", { name: "Add Franchise" }).click();
-  await page.getByRole('button', { name: 'Cancel' }).click();
-  await page.getByRole('textbox', { name: 'Filter franchises' }).click();
-  await page.getByRole('textbox', { name: 'Filter franchises' }).fill('Pizza');
-  await page.getByRole('button', { name: 'Submit' }).click();
+  await page.getByRole("button", { name: "Cancel" }).click();
+  await page.getByRole("textbox", { name: "Filter franchises" }).click();
+  await page.getByRole("textbox", { name: "Filter franchises" }).fill("Pizza");
+  await page
+    .getByRole("cell", { name: "Pizza Submit" })
+    .getByRole("button")
+    .click();
 });
