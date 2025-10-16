@@ -433,7 +433,10 @@ test("admin list users", async ({page}) => {
   await page.getByRole("button", { name: "Login" }).click();
   await page.getByRole("link", { name: "Admin" }).click();
   await expect(page.getByRole('row', { name: 'Submit', exact: true }).getByRole('button')).toBeVisible();
+  await expect(page.getByRole('cell', { name: 'Fran Chise' })).toBeVisible();
   await page.getByRole('textbox', { name: 'Filter users' }).click();
   await page.getByRole('textbox', { name: 'Filter users' }).fill('k');
   await page.getByRole('cell', { name: 'k Submit' }).getByRole('button').click();
+  await expect(page.getByRole('cell', { name: 'Kai Chen' })).toBeVisible();
+  await expect(page.getByRole('cell', { name: 'Fran Chise' })).not.toBeVisible();
 })

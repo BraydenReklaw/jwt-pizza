@@ -29,7 +29,7 @@ export default function AdminDashboard(props: Props) {
     users: User[];
     more: boolean;
   }>({ users: [], more: false });
-  const [userPage, setUserPage] = React.useState(0);
+  const [userPage, setUserPage] = React.useState(1);
   const filterUserRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
