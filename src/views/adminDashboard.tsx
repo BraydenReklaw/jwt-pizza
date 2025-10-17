@@ -31,7 +31,7 @@ export default function AdminDashboard(props: Props) {
   }>({ users: [], more: false });
   const [userPage, setUserPage] = React.useState(1);
   const filterUserRef = React.useRef<HTMLInputElement>(null);
-  
+
   React.useEffect(() => {
     (async () => {
       setFranchiseList(await pizzaService.getFranchises(franchisePage, 3, "*"));
@@ -56,8 +56,9 @@ export default function AdminDashboard(props: Props) {
     );
   }
   
-  async function deleteUser() {
+  async function deleteUser(user: User) {
     await pizzaService.deleteUser(user)
+    filterUsers()
   }
 
   function createFranchise() {

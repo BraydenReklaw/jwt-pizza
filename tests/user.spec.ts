@@ -450,4 +450,5 @@ test("admin delete user", async ({page}) => {
   await page.getByPlaceholder("Password").fill("a");
   await page.getByRole("button", { name: "Login" }).click();
   await page.getByRole("link", { name: "Admin" }).click();
+  
 })
