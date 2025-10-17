@@ -121,6 +121,9 @@ async function basicInit(page: Page) {
   // Update user info
   await page.route(/\/api\/user\/\d+$/, async (route) => {
     const method = route.request().method();
+    const url = new URL(route.request().url());
+    const userId = url.pathname.split("/").pop();
+
     if (method !== "PUT") {
       // assumes DELETE
       // Find user by ID
@@ -154,8 +157,7 @@ async function basicInit(page: Page) {
       return;
     }
 
-    const url = new URL(route.request().url());
-    const userId = url.pathname.split("/").pop();
+    
     const updateData = route.request().postDataJSON();
 
     // Find the user by ID
@@ -477,4 +479,8 @@ test("admin delete user", async ({ page }) => {
   await page.getByPlaceholder("Password").fill("a");
   await page.getByRole("button", { name: "Login" }).click();
   await page.getByRole("link", { name: "Admin" }).click();
+  await page.getByRole('row', { name: 'Kai Chen d@jwt.com diner' }).getByRole('button').click();
+  await expect(page.getByText('Delete User')).toBeVisible();
+  await page.getByRole('button', { name: 'Delete' }).click();
+  await expect(page.getByRole('row', { name: 'Kai Chen d@jwt.com diner' })).not.toBeVisible();
 });
