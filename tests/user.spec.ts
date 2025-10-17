@@ -122,7 +122,27 @@ async function basicInit(page: Page) {
   await page.route(/\/api\/user\/\d+$/, async (route) => {
     const method = route.request().method();
     if (method !== "PUT") {
-      await route.continue();
+      // assumes DELETE
+      // Find user by ID
+      const userEntry = Object.entries(validUsers).find(
+        ([_, u]) => u.id === userId
+      );
+      if (!userEntry) {
+        await route.fulfill({
+          status: 404,
+          json: { error: "User not found" },
+        });
+        return;
+      }
+
+      // Delete user
+      const [email] = userEntry;
+      delete validUsers[email];
+
+      await route.fulfill({
+        status: 204, // No Content
+        json: {}, // some fetch implementations expect json, so empty object is fine
+      });
       return;
     }
 
@@ -423,7 +443,7 @@ test("adim update info", async ({ page }) => {
   await expect(page.getByText("admin", { exact: true })).toBeVisible();
 });
 
-test("admin list users", async ({page}) => {
+test("admin list users", async ({ page }) => {
   await basicInit(page);
   await page.goto("/");
   // Login as admin
@@ -432,16 +452,23 @@ test("admin list users", async ({page}) => {
   await page.getByPlaceholder("Password").fill("a");
   await page.getByRole("button", { name: "Login" }).click();
   await page.getByRole("link", { name: "Admin" }).click();
-  await expect(page.getByRole('row', { name: 'Submit', exact: true }).getByRole('button')).toBeVisible();
-  await expect(page.getByRole('cell', { name: 'Fran Chise' })).toBeVisible();
-  await page.getByRole('textbox', { name: 'Filter users' }).click();
-  await page.getByRole('textbox', { name: 'Filter users' }).fill('k');
-  await page.getByRole('cell', { name: 'k Submit' }).getByRole('button').click();
-  await expect(page.getByRole('cell', { name: 'Kai Chen' })).toBeVisible();
-  await expect(page.getByRole('cell', { name: 'Fran Chise' })).not.toBeVisible();
-})
+  await expect(
+    page.getByRole("row", { name: "Submit", exact: true }).getByRole("button")
+  ).toBeVisible();
+  await expect(page.getByRole("cell", { name: "Fran Chise" })).toBeVisible();
+  await page.getByRole("textbox", { name: "Filter users" }).click();
+  await page.getByRole("textbox", { name: "Filter users" }).fill("k");
+  await page
+    .getByRole("cell", { name: "k Submit" })
+    .getByRole("button")
+    .click();
+  await expect(page.getByRole("cell", { name: "Kai Chen" })).toBeVisible();
+  await expect(
+    page.getByRole("cell", { name: "Fran Chise" })
+  ).not.toBeVisible();
+});
 
-test("admin delete user", async ({page}) => {
+test("admin delete user", async ({ page }) => {
   await basicInit(page);
   await page.goto("/");
   // Login as admin
@@ -450,5 +477,4 @@ test("admin delete user", async ({page}) => {
   await page.getByPlaceholder("Password").fill("a");
   await page.getByRole("button", { name: "Login" }).click();
   await page.getByRole("link", { name: "Admin" }).click();
-  
-})
+});
