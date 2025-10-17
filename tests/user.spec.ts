@@ -440,3 +440,14 @@ test("admin list users", async ({page}) => {
   await expect(page.getByRole('cell', { name: 'Kai Chen' })).toBeVisible();
   await expect(page.getByRole('cell', { name: 'Fran Chise' })).not.toBeVisible();
 })
+
+test("admin delete user", async ({page}) => {
+  await basicInit(page);
+  await page.goto("/");
+  // Login as admin
+  await page.getByRole("link", { name: "Login" }).click();
+  await page.getByPlaceholder("Email address").fill("a@jwt.com");
+  await page.getByPlaceholder("Password").fill("a");
+  await page.getByRole("button", { name: "Login" }).click();
+  await page.getByRole("link", { name: "Admin" }).click();
+})
